@@ -1,0 +1,74 @@
+// Produtora Musical - Schema Prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TipoUsuario {
+  admin
+  vendedor
+  artista
+  artista_vendedor
+  visualizador
+}
+
+enum StatusEvento {
+  pendente
+  aprovado
+  recusado
+}
+
+model Usuario {
+  id        Int         @id @default(autoincrement())
+  nome      String
+  cpf       String      @unique
+  senha     String
+  tipo      TipoUsuario @default(vendedor)
+  createdAt DateTime    @default(now())
+
+  artista        Artista?
+  eventosCriados Evento[] @relation("CriadoPor")
+}
+
+model Artista {
+  id        Int     @id @default(autoincrement())
+  nome      String
+  usuarioId Int     @unique
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  eventos Evento[]
+}
+
+model Contratante {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  cpf       String?  @unique
+  cnpj      String?  @unique
+  telefone  String?
+  email     String?
+  createdAt DateTime @default(now())
+
+  eventos Evento[]
+}
+
+model Evento {
+  id             Int          @id @default(autoincrement())
+  artistaId      Int
+  contratanteId  Int?
+  data           DateTime
+  cidade         String
+  estado         String
+  local          String
+  valor          Float
+  status         StatusEvento @default(pendente)
+  criadoPor      Int
+  createdAt      DateTime     @default(now())
+
+  artista     Artista      @relation(fields: [artistaId], references: [id], onDelete: Cascade)
+  contratante Contratante? @relation(fields: [contratanteId], references: [id])
+  criador     Usuario      @relation("CriadoPor", fields: [criadoPor], references: [id])
+}
