@@ -30,10 +30,11 @@ model Banda {
   ativo     Boolean  @default(true)
   createdAt DateTime @default(now())
 
-  usuarios     Usuario[]
-  artistas     Artista[]
-  eventos      Evento[]
-  contratantes Contratante[]
+  usuarios          Usuario[]
+  artistas          Artista[]
+  eventos           Evento[]
+  contratantes      Contratante[]
+  categoriasDespesa CategoriaDespesa[]
 }
 
 model Usuario {
@@ -85,6 +86,7 @@ model Evento {
   estado         String
   local          String
   valor          Float
+  numeroNF       String?
   status         StatusEvento @default(pendente)
   criadoPor      Int
   createdAt      DateTime     @default(now())
@@ -93,4 +95,61 @@ model Evento {
   contratante Contratante? @relation(fields: [contratanteId], references: [id])
   criador     Usuario      @relation("CriadoPor", fields: [criadoPor], references: [id])
   banda       Banda?       @relation(fields: [bandaId], references: [id])
+  despesas    Despesa[]
+  pagamentos  Pagamento[]
+}
+
+model CategoriaDespesa {
+  id        Int       @id @default(autoincrement())
+  nome      String
+  bandaId   Int?
+  banda     Banda?    @relation(fields: [bandaId], references: [id])
+  despesas  Despesa[]
+}
+
+model Despesa {
+  id          Int      @id @default(autoincrement())
+  eventoId    Int
+  categoriaId Int
+  descricao   String?
+  valor       Float
+  createdAt   DateTime @default(now())
+
+  evento    Evento           @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  categoria CategoriaDespesa @relation(fields: [categoriaId], references: [id])
+}
+
+enum TipoPagamento {
+  adiantamento
+  saldo
+  total
+}
+
+enum FormaPagamento {
+  pix
+  ted
+  dinheiro
+  cheque
+
+  @@map("FormaPagamento")
+}
+
+enum StatusPagamento {
+  pendente
+  recebido
+}
+
+model Pagamento {
+  id              Int             @id @default(autoincrement())
+  eventoId        Int
+  tipo            TipoPagamento
+  forma           FormaPagamento
+  percentual      Int
+  valor           Float
+  dataPagamento   DateTime?
+  observacao      String?
+  status          StatusPagamento @default(pendente)
+  createdAt       DateTime        @default(now())
+
+  evento Evento @relation(fields: [eventoId], references: [id], onDelete: Cascade)
 }

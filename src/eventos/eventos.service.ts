@@ -6,6 +6,36 @@ import { CreateEventoDto } from "./dto/create-evento.dto";
 export class EventosService {
   constructor(private prisma: PrismaService) {}
 
+  // helper: monta include padrão com resumo financeiro para eventos aprovados
+  private get includeBase() {
+    return {
+      artista: { select: { id: true, nome: true } },
+      contratante: { select: { id: true, nome: true } },
+      criador: { select: { id: true, nome: true, tipo: true } },
+      banda: { select: { id: true, nome: true } },
+      pagamentos: { select: { valor: true, status: true } },
+      despesas: { select: { valor: true } },
+    };
+  }
+
+  private mapFinanceiro(eventos: any[]) {
+    return eventos.map((ev) => {
+      if (ev.status !== "aprovado") return ev;
+      const totalDespesas = ev.despesas?.reduce((s: number, d: any) => s + d.valor, 0) ?? 0;
+      const totalRecebido = ev.pagamentos?.filter((p: any) => p.status === "recebido").reduce((s: number, p: any) => s + p.valor, 0) ?? 0;
+      const saldoPendente = ev.valor - totalDespesas - totalRecebido;
+      return {
+        ...ev,
+        _financeiro: {
+          totalDespesas,
+          totalRecebido,
+          saldoPendente,
+          status: saldoPendente <= 0 ? "quitado" : totalRecebido > 0 ? "parcial" : "pendente",
+        },
+      };
+    });
+  }
+
   async create(dto: CreateEventoDto, user: { userId: number; tipo: string; bandaId?: number | null }) {
     const artista = await this.prisma.artista.findUnique({ where: { id: dto.artistaId } });
     if (!artista) throw new NotFoundException("Artista nao encontrado");
@@ -43,31 +73,23 @@ export class EventosService {
     if (tipo === "artista") {
       const artista = await this.prisma.artista.findUnique({ where: { usuarioId: userId } });
       if (!artista) return [];
-      return this.prisma.evento.findMany({
+      const lista = await this.prisma.evento.findMany({
         where: { artistaId: artista.id, ...bandaFilter },
-        include: {
-          artista: { select: { id: true, nome: true } },
-          contratante: { select: { id: true, nome: true } },
-          criador: { select: { id: true, nome: true } },
-          banda: { select: { id: true, nome: true } },
-        },
+        include: this.includeBase,
         orderBy: { data: "asc" },
       });
+      return this.mapFinanceiro(lista);
     }
 
     if (tipo === "artista_vendedor") {
       const artista = await this.prisma.artista.findUnique({ where: { usuarioId: userId } });
       const where = artista ? { artistaId: artista.id, ...bandaFilter } : { ...bandaFilter };
-      return this.prisma.evento.findMany({
+      const lista = await this.prisma.evento.findMany({
         where,
-        include: {
-          artista: { select: { id: true, nome: true } },
-          contratante: { select: { id: true, nome: true } },
-          criador: { select: { id: true, nome: true } },
-          banda: { select: { id: true, nome: true } },
-        },
+        include: this.includeBase,
         orderBy: { data: "asc" },
       });
+      return this.mapFinanceiro(lista);
     }
 
     if (tipo === "visualizador") {
@@ -83,16 +105,12 @@ export class EventosService {
       });
     }
 
-    return this.prisma.evento.findMany({
+    const lista = await this.prisma.evento.findMany({
       where: { ...bandaFilter },
-      include: {
-        artista: { select: { id: true, nome: true } },
-        contratante: { select: { id: true, nome: true } },
-        criador: { select: { id: true, nome: true, tipo: true } },
-        banda: { select: { id: true, nome: true } },
-      },
+      include: this.includeBase,
       orderBy: { data: "asc" },
     });
+    return this.mapFinanceiro(lista);
   }
 
   async findOne(id: number, user: { userId: number; tipo: string }) {

@@ -7,6 +7,7 @@ import { ArtistasModule } from './artistas/artistas.module';
 import { EventosModule } from './eventos/eventos.module';
 import { ContratantesModule } from './contratantes/contratantes.module';
 import { BandasModule } from './bandas/bandas.module';
+import { FinanceiroModule } from './financeiro/financeiro.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { BandasModule } from './bandas/bandas.module';
     EventosModule,
     ContratantesModule,
     BandasModule,
+    FinanceiroModule,
   ],
 })
 export class AppModule {}

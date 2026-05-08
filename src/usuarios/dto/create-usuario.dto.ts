@@ -1,4 +1,12 @@
-import { IsNotEmpty, IsString, Length, Matches, IsEnum, IsOptional, IsInt } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  Length,
+  Matches,
+  IsEnum,
+  IsOptional,
+  IsInt,
+} from 'class-validator';
 
 export enum TipoUsuario {
   super_admin = 'super_admin',
@@ -15,7 +23,9 @@ export class CreateUsuarioDto {
   nome: string;
 
   @IsNotEmpty({ message: 'CPF é obrigatório' })
-  @Matches(/^\d{11}$/, { message: 'CPF deve conter exatamente 11 dígitos numéricos' })
+  @Matches(/^\d{11}$/, {
+    message: 'CPF deve conter exatamente 11 dígitos numéricos',
+  })
   cpf: string;
 
   @IsNotEmpty({ message: 'Senha é obrigatória' })

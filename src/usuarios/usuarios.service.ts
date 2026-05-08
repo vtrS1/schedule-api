@@ -1,4 +1,8 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
@@ -8,7 +12,9 @@ export class UsuariosService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreateUsuarioDto) {
-    const exists = await this.prisma.usuario.findUnique({ where: { cpf: dto.cpf } });
+    const exists = await this.prisma.usuario.findUnique({
+      where: { cpf: dto.cpf },
+    });
     if (exists) throw new ConflictException('CPF ja cadastrado');
 
     const senhaHash = await bcrypt.hash(dto.senha, 10);
@@ -21,12 +27,23 @@ export class UsuariosService {
         tipo: dto.tipo,
         bandaId: dto.bandaId ?? null,
       },
-      select: { id: true, nome: true, cpf: true, tipo: true, bandaId: true, createdAt: true },
+      select: {
+        id: true,
+        nome: true,
+        cpf: true,
+        tipo: true,
+        bandaId: true,
+        createdAt: true,
+      },
     });
 
     if (dto.tipo === 'artista' || dto.tipo === 'artista_vendedor') {
       await this.prisma.artista.create({
-        data: { nome: dto.nome, usuarioId: usuario.id, bandaId: dto.bandaId ?? null },
+        data: {
+          nome: dto.nome,
+          usuarioId: usuario.id,
+          bandaId: dto.bandaId ?? null,
+        },
       });
     }
 
@@ -34,12 +51,17 @@ export class UsuariosService {
   }
 
   async findAll(caller: { tipo: string; bandaId?: number | null }) {
-    const where = caller.tipo === 'super_admin' ? {} : { bandaId: caller.bandaId ?? null };
+    const where =
+      caller.tipo === 'super_admin' ? {} : { bandaId: caller.bandaId ?? null };
 
     return this.prisma.usuario.findMany({
       where,
       select: {
-        id: true, nome: true, cpf: true, tipo: true, bandaId: true,
+        id: true,
+        nome: true,
+        cpf: true,
+        tipo: true,
+        bandaId: true,
         banda: { select: { id: true, nome: true } },
         createdAt: true,
       },
@@ -51,9 +73,14 @@ export class UsuariosService {
     const usuario = await this.prisma.usuario.findUnique({
       where: { id },
       select: {
-        id: true, nome: true, cpf: true, tipo: true, bandaId: true,
+        id: true,
+        nome: true,
+        cpf: true,
+        tipo: true,
+        bandaId: true,
         banda: { select: { id: true, nome: true } },
-        createdAt: true, artista: true,
+        createdAt: true,
+        artista: true,
       },
     });
     if (!usuario) throw new NotFoundException('Usuario nao encontrado');
@@ -68,7 +95,14 @@ export class UsuariosService {
     return this.prisma.usuario.update({
       where: { id },
       data,
-      select: { id: true, nome: true, cpf: true, tipo: true, bandaId: true, createdAt: true },
+      select: {
+        id: true,
+        nome: true,
+        cpf: true,
+        tipo: true,
+        bandaId: true,
+        createdAt: true,
+      },
     });
   }
 

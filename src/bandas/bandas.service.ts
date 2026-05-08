@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBandaDto, UpdateBandaDto } from './dto/banda.dto';
 
@@ -7,7 +11,9 @@ export class BandasService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreateBandaDto) {
-    const exists = await this.prisma.banda.findUnique({ where: { slug: dto.slug } });
+    const exists = await this.prisma.banda.findUnique({
+      where: { slug: dto.slug },
+    });
     if (exists) throw new ConflictException('Slug já em uso');
 
     return this.prisma.banda.create({ data: dto });

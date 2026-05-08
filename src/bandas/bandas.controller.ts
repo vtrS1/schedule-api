@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  ParseIntPipe,
+  UseGuards,
+} from '@nestjs/common';
 import { BandasService } from './bandas.service';
 import { CreateBandaDto, UpdateBandaDto } from './dto/banda.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -17,7 +27,14 @@ export class BandasController {
   }
 
   @Get()
-  @Roles('super_admin', 'admin', 'vendedor', 'artista', 'artista_vendedor', 'visualizador')
+  @Roles(
+    'super_admin',
+    'admin',
+    'vendedor',
+    'artista',
+    'artista_vendedor',
+    'visualizador',
+  )
   findAll() {
     return this.bandasService.findAll();
   }
