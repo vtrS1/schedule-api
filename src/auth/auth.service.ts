@@ -34,6 +34,7 @@ export class AuthService {
       userId: usuario.id,
       cpf: usuario.cpf,
       tipo: usuario.tipo,
+      bandaId: usuario.bandaId ?? null,
     };
 
     const token = this.jwtService.sign(payload);
@@ -45,6 +46,7 @@ export class AuthService {
         nome: usuario.nome,
         cpf: usuario.cpf,
         tipo: usuario.tipo,
+        bandaId: usuario.bandaId ?? null,
       },
     };
   }

@@ -1,6 +1,7 @@
-import { IsNotEmpty, IsString, Length, Matches, IsEnum } from 'class-validator';
+import { IsNotEmpty, IsString, Length, Matches, IsEnum, IsOptional, IsInt } from 'class-validator';
 
 export enum TipoUsuario {
+  super_admin = 'super_admin',
   admin = 'admin',
   vendedor = 'vendedor',
   artista = 'artista',
@@ -24,4 +25,8 @@ export class CreateUsuarioDto {
 
   @IsEnum(TipoUsuario, { message: 'Tipo de usuário inválido' })
   tipo: TipoUsuario;
+
+  @IsOptional()
+  @IsInt()
+  bandaId?: number;
 }

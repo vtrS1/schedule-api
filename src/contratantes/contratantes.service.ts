@@ -1,26 +1,28 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateContratanteDto } from './dto/create-contratante.dto';
+import { Injectable, ConflictException, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { CreateContratanteDto } from "./dto/create-contratante.dto";
 
 @Injectable()
 export class ContratantesService {
   constructor(private prisma: PrismaService) {}
 
-  async create(dto: CreateContratanteDto) {
+  async create(dto: CreateContratanteDto, caller: { tipo: string; bandaId?: number | null }) {
     if (dto.cpf) {
       const exists = await this.prisma.contratante.findUnique({ where: { cpf: dto.cpf } });
-      if (exists) throw new ConflictException('CPF já cadastrado');
+      if (exists) throw new ConflictException("CPF ja cadastrado");
     }
     if (dto.cnpj) {
       const exists = await this.prisma.contratante.findUnique({ where: { cnpj: dto.cnpj } });
-      if (exists) throw new ConflictException('CNPJ já cadastrado');
+      if (exists) throw new ConflictException("CNPJ ja cadastrado");
     }
-
-    return this.prisma.contratante.create({ data: dto });
+    return this.prisma.contratante.create({
+      data: { ...dto, bandaId: caller.bandaId ?? null },
+    });
   }
 
-  findAll() {
-    return this.prisma.contratante.findMany({ orderBy: { nome: 'asc' } });
+  findAll(caller: { tipo: string; bandaId?: number | null }) {
+    const where = caller.tipo === "super_admin" ? {} : { bandaId: caller.bandaId ?? null };
+    return this.prisma.contratante.findMany({ where, orderBy: { nome: "asc" } });
   }
 
   async findOne(id: number) {
@@ -28,7 +30,7 @@ export class ContratantesService {
       where: { id },
       include: { eventos: { select: { id: true, data: true, local: true, status: true } } },
     });
-    if (!c) throw new NotFoundException('Contratante não encontrado');
+    if (!c) throw new NotFoundException("Contratante nao encontrado");
     return c;
   }
 

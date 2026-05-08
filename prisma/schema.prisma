@@ -9,6 +9,7 @@ datasource db {
 }
 
 enum TipoUsuario {
+  super_admin
   admin
   vendedor
   artista
@@ -22,14 +23,29 @@ enum StatusEvento {
   recusado
 }
 
+model Banda {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  slug      String   @unique
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  usuarios     Usuario[]
+  artistas     Artista[]
+  eventos      Evento[]
+  contratantes Contratante[]
+}
+
 model Usuario {
   id        Int         @id @default(autoincrement())
   nome      String
   cpf       String      @unique
   senha     String
   tipo      TipoUsuario @default(vendedor)
+  bandaId   Int?
   createdAt DateTime    @default(now())
 
+  banda          Banda?   @relation(fields: [bandaId], references: [id])
   artista        Artista?
   eventosCriados Evento[] @relation("CriadoPor")
 }
@@ -38,7 +54,9 @@ model Artista {
   id        Int     @id @default(autoincrement())
   nome      String
   usuarioId Int     @unique
+  bandaId   Int?
   usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  banda     Banda?  @relation(fields: [bandaId], references: [id])
 
   eventos Evento[]
 }
@@ -50,8 +68,10 @@ model Contratante {
   cnpj      String?  @unique
   telefone  String?
   email     String?
+  bandaId   Int?
   createdAt DateTime @default(now())
 
+  banda   Banda?   @relation(fields: [bandaId], references: [id])
   eventos Evento[]
 }
 
@@ -59,6 +79,7 @@ model Evento {
   id             Int          @id @default(autoincrement())
   artistaId      Int
   contratanteId  Int?
+  bandaId        Int?
   data           DateTime
   cidade         String
   estado         String
@@ -71,4 +92,5 @@ model Evento {
   artista     Artista      @relation(fields: [artistaId], references: [id], onDelete: Cascade)
   contratante Contratante? @relation(fields: [contratanteId], references: [id])
   criador     Usuario      @relation("CriadoPor", fields: [criadoPor], references: [id])
+  banda       Banda?       @relation(fields: [bandaId], references: [id])
 }
