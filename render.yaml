@@ -8,7 +8,9 @@ services:
     env: node
     plan: free
     region: oregon
-    buildCommand: npm install && npm run build
+    # --include=dev é necessário porque NODE_ENV=production faz o npm
+    # pular as devDependencies (onde está o @nestjs/cli usado no build).
+    buildCommand: npm install --include=dev && npm run build
     preDeployCommand: npx prisma migrate deploy
     startCommand: npm run start:prod
     envVars:
