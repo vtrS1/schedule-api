@@ -4,7 +4,11 @@ const { PrismaClient } = require("@prisma/client");
 const { PrismaPg } = require("@prisma/adapter-pg");
 const bcrypt = require("bcrypt");
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const needsSsl = process.env.NODE_ENV === 'production' || process.env.DATABASE_SSL === 'true';
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: needsSsl ? { rejectUnauthorized: false } : undefined,
+});
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
@@ -48,7 +52,7 @@ async function main() {
     for (let i = 0; i < eventos.length; i++) {
       const ev = eventos[i];
 
-      // Limpar dados anteriores para não duplicar
+      // Limpar dados anteriores para nï¿½o duplicar
       await prisma.despesa.deleteMany({ where: { eventoId: ev.id } });
       await prisma.pagamento.deleteMany({ where: { eventoId: ev.id } });
 

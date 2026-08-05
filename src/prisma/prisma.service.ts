@@ -9,7 +9,12 @@ const { PrismaPg } = require('@prisma/adapter-pg');
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   constructor() {
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    // Bancos gerenciados (Render, Neon, Supabase, etc.) exigem SSL em conexões externas.
+    const needsSsl = process.env.NODE_ENV === 'production' || process.env.DATABASE_SSL === 'true';
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: needsSsl ? { rejectUnauthorized: false } : undefined,
+    });
     const adapter = new PrismaPg(pool);
     super({ adapter });
   }

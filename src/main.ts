@@ -16,13 +16,18 @@ async function bootstrap() {
   );
 
   // CORS para o frontend Angular
+  const allowedOrigins = (process.env.FRONTEND_URL ?? 'http://localhost:4200')
+    .split(',')
+    .map((origin) => origin.trim());
+
   app.enableCors({
-    origin: ['http://localhost:4200'],
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
-  await app.listen(3000);
-  console.log('🎵 Schedule API rodando em http://localhost:3000');
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port);
+  console.log(`🎵 Schedule API rodando na porta ${port}`);
 }
 bootstrap();

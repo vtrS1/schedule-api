@@ -1,0 +1,24 @@
+# O banco Postgres já foi criado manualmente no dashboard do Render,
+# então este blueprint não recria o database — apenas o Web Service.
+# As env vars abaixo (DATABASE_URL, JWT_SECRET, FRONTEND_URL) devem ser
+# definidas manualmente no dashboard do Web Service (Environment tab).
+services:
+  - type: web
+    name: schedule-api
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: npm install && npm run build
+    preDeployCommand: npx prisma migrate deploy
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: FRONTEND_URL
+        sync: false
