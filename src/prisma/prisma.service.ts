@@ -9,8 +9,12 @@ const { PrismaPg } = require('@prisma/adapter-pg');
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   constructor() {
-    // Bancos gerenciados (Render, Neon, Supabase, etc.) exigem SSL em conexões externas.
-    const needsSsl = process.env.NODE_ENV === 'production' || process.env.DATABASE_SSL === 'true';
+    // SSL só é ligado quando explicitamente pedido (ex.: banco externo à
+    // rede do provedor, como Neon/Supabase, ou a Internal Database URL do
+    // Render usada de fora da rede do Render). Para o Web Service falando
+    // com a Internal Database URL do próprio Render, deixe DATABASE_SSL
+    // fora do ambiente — a conexão já é privada e não precisa de TLS.
+    const needsSsl = process.env.DATABASE_SSL === 'true';
     const pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: needsSsl ? { rejectUnauthorized: false } : undefined,
